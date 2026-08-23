@@ -1,0 +1,13 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Listings are public read-only data — no auth, just price/link info.
+    // All writes happen server-side via the Admin SDK (scraper), which
+    // bypasses these rules entirely, so no client write path is allowed.
+    match /listings/{cardId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

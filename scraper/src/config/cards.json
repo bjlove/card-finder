@@ -1,0 +1,40 @@
+{
+  "_comment": "Add or edit cards here. Each card gets its own search on eBay/Goldin/Fanatics and its own parallel list for tagging results. 'match' keywords are lowercase substrings that must ALL appear in a listing title for it to be tagged with that parallel. Order matters: the first parallel (top to bottom) whose keywords all match wins, so put the most specific parallels (Superfractor, Black Wave, Printing Plates, color+finish combos) above the generic ones (plain 'Refractor'). 'psa10Estimate' is just a reference range you supply for context in the UI — it is never scraped, so update it by hand as the market moves.",
+  "cards": [
+    {
+      "id": "2022-bowman-draft-chrome-misiorowski",
+      "active": true,
+      "player": "Jacob Misiorowski",
+      "year": 2022,
+      "set": "Bowman Draft Chrome Draft Pick Autographs",
+      "cardNumber": "CDA-JMI",
+      "search": {
+        "ebay": "Jacob Misiorowski 2022 Bowman Chrome Draft Auto",
+        "goldin": "Jacob Misiorowski 2022 Bowman Draft Chrome",
+        "fanatics": "Jacob Misiorowski 2022 Bowman Chrome Draft"
+      },
+      "parallels": [
+        { "name": "Superfractor", "printRun": 1, "match": ["superfractor"], "psa10Estimate": null },
+        { "name": "Black Wave Refractor", "printRun": 1, "match": ["black", "wave"], "psa10Estimate": null },
+        { "name": "Printing Plate (Cyan)", "printRun": 1, "match": ["plate", "cyan"], "psa10Estimate": null },
+        { "name": "Printing Plate (Magenta)", "printRun": 1, "match": ["plate", "magenta"], "psa10Estimate": null },
+        { "name": "Printing Plate (Yellow)", "printRun": 1, "match": ["plate", "yellow"], "psa10Estimate": null },
+        { "name": "Printing Plate (Black)", "printRun": 1, "match": ["plate", "black"], "psa10Estimate": null },
+        { "name": "Red Lava Refractor", "printRun": 5, "match": ["red", "lava"], "psa10Estimate": [10000, 18000] },
+        { "name": "Red Wave Refractor", "printRun": 5, "match": ["red", "wave"], "psa10Estimate": [10000, 18000] },
+        { "name": "Red Refractor", "printRun": 5, "match": ["red", "refractor"], "psa10Estimate": [10000, 18000] },
+        { "name": "Orange Refractor (Jumbo)", "printRun": 25, "match": ["orange"], "psa10Estimate": [5000, 9000] },
+        { "name": "Gold Wave Refractor", "printRun": 50, "match": ["gold", "wave"], "psa10Estimate": [2500, 4500] },
+        { "name": "Gold Refractor", "printRun": 50, "match": ["gold", "refractor"], "psa10Estimate": [2500, 4500] },
+        { "name": "Sparkle Refractor", "printRun": 71, "match": ["sparkle"], "psa10Estimate": [2000, 3500] },
+        { "name": "Black Refractor (Jumbo)", "printRun": 75, "match": ["black", "refractor"], "psa10Estimate": [3500, 4500] },
+        { "name": "Green Refractor", "printRun": 99, "match": ["green", "refractor"], "psa10Estimate": [1800, 2800] },
+        { "name": "Blue Wave Refractor", "printRun": 150, "match": ["blue", "wave"], "psa10Estimate": [1800, 2800] },
+        { "name": "Blue Refractor", "printRun": 150, "match": ["blue", "refractor"], "psa10Estimate": [1800, 2800] },
+        { "name": "Aqua Lava Refractor", "printRun": 199, "match": ["aqua"], "psa10Estimate": [900, 1400] },
+        { "name": "Purple Refractor", "printRun": 250, "match": ["purple", "refractor"], "psa10Estimate": [1000, 1800] },
+        { "name": "Refractor (base)", "printRun": 499, "match": ["refractor"], "psa10Estimate": [900, 1400] }
+      ]
+    }
+  ]
+}
