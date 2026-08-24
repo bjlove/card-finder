@@ -4,3 +4,4 @@ dist/
 .claude/
 scraper/serviceAccountKey.json
 frontend/src/firebase.js
+firebase-debug.log
