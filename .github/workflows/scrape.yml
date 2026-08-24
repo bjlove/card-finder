@@ -26,7 +26,9 @@ jobs:
       - name: Write Firebase service account key
         run: echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > serviceAccountKey.json
         env:
-          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          # Reuses the secret Firebase's own `hosting:github` setup already created
+          # (same service account, just named after the project id).
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CARD_FINDER_9C1D9 }}
 
       - run: npm run scrape
         env:
