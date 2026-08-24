@@ -23,7 +23,7 @@ card-finder/
 │   └── src/
 │       ├── config/cards.json   ← edit this to add/change tracked cards
 │       ├── sources/            ebay.js, goldin.js, fanatics.js
-│       ├── lib/                 shared Firestore/browser/matching helpers
+│       ├── lib/                 shared Firestore/matching helpers
 │       └── index.js             orchestrates all sources, writes to Firestore
 ├── frontend/            React + Vite + Tailwind v4 — reads Firestore live
 ├── firestore.rules      public read, no client writes
@@ -36,49 +36,61 @@ Firestore (`listings/{cardId}`) via the Admin SDK → the React frontend
 subscribes to that Firestore collection in real time via `onSnapshot`, so the
 page updates automatically as new data lands, no polling or redeploy needed.
 
-### Why this split (vs. an all-Firebase-Functions design)
+### How each source actually gets data
 
-eBay has an official, ToS-compliant **Browse API** — a plain authenticated
-REST call, no scraping involved. Goldin and Fanatics Collect do not have a
-public API; their listings only render via client-side JavaScript, so getting
-data out requires a real headless browser (Playwright). Firebase's standard
-Cloud Functions runtime isn't a good fit for running a full Chromium browser
-(cold starts, memory/timeout limits), so the scraper runs as a plain Node
-script on a schedule (GitHub Actions' free tier cron) instead, and Firebase is
-used only for data storage (Firestore) and static hosting of the built React
-app.
+- **eBay:** the official, ToS-compliant **Browse API** — a plain
+  authenticated REST call (OAuth client-credentials).
+- **Goldin:** no documented public API, but its own `/buy` search page is
+  backed by a plain JSON endpoint (`d1wu47wucybvr3.cloudfront.net/api/lots_v2`)
+  that needs no auth or cookies — found by watching the network tab while
+  using the site's real search box. `scraper/src/sources/goldin.js` calls it
+  directly.
+- **Fanatics Collect:** also no documented public API. Its search is Algolia
+  under the hood: the site first fetches a short-lived, scoped search key
+  from its GraphQL endpoint (`webSearchKeyQuery`), then queries Algolia
+  directly with it. `scraper/src/sources/fanatics.js` replicates both calls.
+
+All three sources are called with plain `fetch` — **no headless browser is
+needed for any of them.** An earlier version of this scraper drove a
+Playwright browser to scrape rendered HTML for Goldin/Fanatics, which turned
+out to be the wrong approach: their `/search` pages don't reliably exist as
+real URLs, real search happens through JS-driven API calls, and the
+DOM-scraping heuristic silently pulled unrelated homepage carousel content in
+testing. Hitting the same JSON APIs their own frontends use is both simpler
+and far more reliable.
 
 ### Known limitations — read before relying on this
 
-- **Goldin and Fanatics Collect do not have a documented public API.** The
-  scrapers for these two (`scraper/src/sources/goldin.js`,
-  `fanatics.js`) work by opening the site's search page in a headless browser
-  and heuristically locating listing cards (an anchor linking to an item page,
-  climbing to the nearest ancestor that also contains a price and an image —
-  see `scraper/src/lib/extractListings.js`). This is a best-effort approach,
-  not a verified selector set, because both sites actively resist plain
-  automated fetches (Fanatics Collect returned HTTP 403 on a basic request
-  during development; Goldin's search results are slow, heavy client-rendered
-  JS). It may return zero results, partial results, or need adjustment after
-  a site redesign.
-- **Scraping these two sites may be against their Terms of Service.** Neither
-  site's `robots.txt` blocks the search/item pages used here, but that is not
-  the same as ToS permission, and both showed signs of active bot protection.
-  This was a deliberate, informed choice (not a default) — see the "eBay
-  only" and "official API only" alternatives below if that risk is not
-  acceptable. Keep the hourly cadence; do not increase scrape frequency.
-- **If a source fails on a given run** (blocked, timed out, redesigned), the
+- **These are undocumented, internal APIs**, not public developer APIs. They
+  can change or add rate limiting/auth requirements without notice — treat
+  Goldin/Fanatics data as "best effort, verify before buying," and keep the
+  hourly cadence (don't increase scrape frequency).
+- **Title-based parallel tagging is a heuristic**, not exact. It's covered by
+  a regression test (`scraper/test-match.mjs`, run in CI before every scrape)
+  built from real listing titles pulled during development, which caught two
+  real bugs: a raw substring match tagged an unrelated "RayWave" parallel as
+  "Wave" (fixed by requiring whole-word, adjacent-phrase matches), and titles
+  that abbreviate "Refractor" as "Ref" weren't matching at all (fixed by
+  accepting both). A generic "Refractor (base)" fallback also risks catching
+  untracked exclusive parallels (e.g. a Fanatics-only "Asia Refractor") that
+  happen to contain the word "Refractor" — a small `exclude` list per
+  parallel in `cards.json` guards against known cases; add to it if you spot
+  a new one in the "Unmatched / Other" bucket. A color+print-run listing that
+  omits the word "Refractor"/"Ref" entirely (sellers sometimes do this) will
+  land in "Unmatched / Other" rather than being guessed at — that's a
+  deliberate false-negative-over-false-positive tradeoff.
+- **If a source fails on a given run** (network error, schema change), the
   scraper logs the error and leaves that source's last-known-good listings in
   Firestore untouched, rather than wiping them — check the colored status
   dots at the top of each card section in the UI to see per-source
   freshness/errors.
-- eBay listing data is reliable (official API); treat Goldin/Fanatics data as
-  "best effort, verify before buying."
+- A source returning zero results is not necessarily a bug — Goldin and
+  Fanatics Collect are auction houses, not fixed inventory, so a given
+  parallel may simply have no live listing at a given hour.
 
 ## Tech stack
 
-- **Scraper:** Node 20, `firebase-admin`, `playwright` (for Goldin/Fanatics),
-  plain `fetch` (for eBay's Browse API)
+- **Scraper:** Node 20, `firebase-admin`, plain `fetch` for all three sources
 - **Frontend:** React 18, Vite 5, Tailwind CSS v4 (via `@tailwindcss/vite`,
   no `tailwind.config.js`), `firebase` (client SDK, Firestore only)
 - **Storage:** Cloud Firestore
@@ -91,22 +103,34 @@ app.
 Edit `scraper/src/config/cards.json`. Each entry needs:
 
 - `search.ebay` / `search.goldin` / `search.fanatics` — the query string sent
-  to each site
-- `parallels` — ordered most-specific-first; each has `match` (keywords that
-  must ALL appear in a listing title, lowercase) and optional `psa10Estimate`
-  (a `[min, max]` reference range shown in the UI — supplied by hand, never
-  scraped)
+  to each site. Keep these broad (e.g. player surname + year + set, not every
+  qualifier) — an overly specific phrase can return zero results even when
+  matching listings exist.
+- `relevanceKeywords` — words that must ALL appear in a title (whole word)
+  before it's kept at all; filters out unrelated products a broad keyword
+  search can surface (a different year, memorabilia, a case break).
+- `parallels` — ordered most-specific-first; each has `match` (words that
+  must appear as an adjacent phrase, in order — `"refractor"` also accepts
+  the "Ref" abbreviation), optional `exclude` (words that veto an otherwise
+  matching parallel), and optional `psa10Estimate` (a `[min, max]` reference
+  range shown in the UI — supplied by hand, never scraped).
 - `active: true/false` — set `false` to stop scraping a card without deleting
-  its config or its Firestore history
+  its config or its Firestore history.
+
+After editing `parallels`, run `npm test` in `scraper/` — it re-checks the
+matcher against real titles seen during development and will catch an
+accidental regression before it reaches production data.
 
 No other code changes are needed to track a new card. Multiple `active: true`
 cards run in the same hourly pass and each gets its own section in the UI.
 
 ## Status
 
-Initial build: scraper (eBay Browse API + Playwright scrapers for
-Goldin/Fanatics Collect), Firestore schema, React/Tailwind v4 frontend, and
-hourly GitHub Actions workflow are all in place for Jacob Misiorowski's 2022
-Bowman Draft Chrome auto. Not yet deployed — see "Missing Steps" in the setup
-conversation for the manual account/credential steps required before this
-runs live.
+Live: scraper (eBay Browse API + direct Goldin/Fanatics Collect API calls),
+Firestore schema, React/Tailwind v4 frontend, and hourly GitHub Actions
+workflow are all deployed and confirmed working end-to-end for Jacob
+Misiorowski's 2022 Bowman Draft Chrome auto — Fanatics Collect is returning
+real, correctly-tagged listings; Goldin currently has no live listings for
+this specific card (confirmed via its API, not a bug); eBay is pending
+developer account verification (`EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET` not yet
+set).

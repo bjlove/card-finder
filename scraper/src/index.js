@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 
 import { db } from "./lib/firestore.js";
 import { matchParallel } from "./lib/matchParallel.js";
+import { filterRelevant } from "./lib/relevance.js";
 import { searchEbay } from "./sources/ebay.js";
 import { searchGoldin } from "./sources/goldin.js";
 import { searchFanatics } from "./sources/fanatics.js";
@@ -24,7 +25,8 @@ async function runSourceForCard(card, source) {
 
   try {
     const listings = await source.run(query);
-    const tagged = listings.map((listing) => ({
+    const relevant = filterRelevant(listings, card.relevanceKeywords);
+    const tagged = relevant.map((listing) => ({
       ...listing,
       parallel: listing.title ? matchParallel(listing.title, card.parallels) : null,
     }));

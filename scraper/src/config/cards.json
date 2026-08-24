@@ -10,9 +10,10 @@
       "cardNumber": "CDA-JMI",
       "search": {
         "ebay": "Jacob Misiorowski 2022 Bowman Chrome Draft Auto",
-        "goldin": "Jacob Misiorowski 2022 Bowman Draft Chrome",
-        "fanatics": "Jacob Misiorowski 2022 Bowman Chrome Draft"
+        "goldin": "Misiorowski 2022 Bowman",
+        "fanatics": "Jacob Misiorowski 2022 Bowman"
       },
+      "relevanceKeywords": ["2022", "bowman"],
       "parallels": [
         { "name": "Superfractor", "printRun": 1, "match": ["superfractor"], "psa10Estimate": null },
         { "name": "Black Wave Refractor", "printRun": 1, "match": ["black", "wave"], "psa10Estimate": null },
@@ -33,7 +34,7 @@
         { "name": "Blue Refractor", "printRun": 150, "match": ["blue", "refractor"], "psa10Estimate": [1800, 2800] },
         { "name": "Aqua Lava Refractor", "printRun": 199, "match": ["aqua"], "psa10Estimate": [900, 1400] },
         { "name": "Purple Refractor", "printRun": 250, "match": ["purple", "refractor"], "psa10Estimate": [1000, 1800] },
-        { "name": "Refractor (base)", "printRun": 499, "match": ["refractor"], "psa10Estimate": [900, 1400] }
+        { "name": "Refractor (base)", "printRun": 499, "match": ["refractor"], "exclude": ["asia", "raywave"], "psa10Estimate": [900, 1400] }
       ]
     }
   ]
