@@ -12,6 +12,17 @@ const GRAPHQL_URL = "https://app.fanaticscollect.com/graphql";
 const ALGOLIA_APP_ID = "3XT9C4X62I";
 const ALGOLIA_URL = `https://${ALGOLIA_APP_ID.toLowerCase()}-dsn.algolia.net/1/indexes/*/queries`;
 
+// Confirmed by watching the real search UI navigate to each type — FIXED
+// (buy-now) listings live under /buy-now/, not /fixed/ as first assumed.
+const MARKETPLACE_PATH = { WEEKLY: "weekly", PREMIER: "premier", FIXED: "buy-now" };
+
+function slugify(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 async function getSearchKey() {
   const res = await fetch(`${GRAPHQL_URL}?webSearchKeyQuery`, {
     method: "POST",
@@ -79,8 +90,13 @@ export async function searchFanatics(query) {
       title: hit.title,
       price: hit.currentPrice ?? null,
       currency: "USD",
-      image: hit.images?.primary?.medium ?? hit.images?.primary?.large ?? null,
-      url: `https://www.fanaticscollect.com/${hit.marketplace.toLowerCase()}/${hit.listingUuid}`,
+      image:
+        hit.images?.primary?.medium ??
+        hit.images?.primary?.large ??
+        hit.images?.primary?.small ??
+        hit.images?.primary?.thumbnail ??
+        null,
+      url: `https://www.fanaticscollect.com/${MARKETPLACE_PATH[hit.marketplace] ?? hit.marketplace.toLowerCase()}/${hit.listingUuid}/${slugify(hit.title)}`,
       listingType: hit.marketplace === "FIXED" ? "buy_now" : "auction",
       auctionEndTime: null,
       condition: null,

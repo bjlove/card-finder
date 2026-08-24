@@ -87,6 +87,16 @@ and far more reliable.
 - A source returning zero results is not necessarily a bug — Goldin and
   Fanatics Collect are auction houses, not fixed inventory, so a given
   parallel may simply have no live listing at a given hour.
+- Fanatics Collect has three listing types with different data shapes, found
+  the hard way: Weekly/Premier auction images expose `medium`/`large` sizes,
+  but Buy Now (`FIXED` marketplace) listings only expose `small`/`thumbnail`
+  — missing those in the image fallback chain silently dropped every Buy Now
+  listing's image. Their URL path also isn't `marketplace.toLowerCase()`:
+  Weekly/Premier use `/weekly/`/`/premier/`, but Buy Now uses `/buy-now/`,
+  not `/fixed/` — confirmed by watching the real search UI navigate, not
+  guessed. Both are covered by `MARKETPLACE_PATH` in `fanatics.js`; if
+  Fanatics adds a new marketplace type, listings of that type will link/image
+  correctly only once that map is extended.
 
 ## Tech stack
 
@@ -106,9 +116,19 @@ Edit `scraper/src/config/cards.json`. Each entry needs:
   to each site. Keep these broad (e.g. player surname + year + set, not every
   qualifier) — an overly specific phrase can return zero results even when
   matching listings exist.
-- `relevanceKeywords` — words that must ALL appear in a title (whole word)
-  before it's kept at all; filters out unrelated products a broad keyword
-  search can surface (a different year, memorabilia, a case break).
+- `relevanceKeywords` — words that must ALL appear in a title (whole word,
+  anywhere) before it's kept at all; filters out unrelated products a broad
+  keyword search can surface (a different year, a non-Chrome product,
+  memorabilia, a case break).
+- `relevancePhrases` — an OR-list of adjacent-word phrases; at least one must
+  appear or the listing is dropped. This is the important one: it's what
+  actually separates a real pack-pulled on-card autograph from a non-auto
+  base card *and* from an aftermarket-signed card (someone signed a raw card
+  later and got it authenticated) — `relevanceKeywords` alone can't tell
+  those apart, since both can legitimately contain the word "auto" somewhere.
+  Every genuine listing seen during testing used the card's own printed
+  designation, "PROSPECT AUTO" or "ROOKIE AUTO", as an exact adjacent phrase;
+  an aftermarket-signed card's listing doesn't organically use that phrasing.
 - `parallels` — ordered most-specific-first; each has `match` (words that
   must appear as an adjacent phrase, in order — `"refractor"` also accepts
   the "Ref" abbreviation), optional `exclude` (words that veto an otherwise

@@ -25,7 +25,7 @@ async function runSourceForCard(card, source) {
 
   try {
     const listings = await source.run(query);
-    const relevant = filterRelevant(listings, card.relevanceKeywords);
+    const relevant = filterRelevant(listings, card.relevanceKeywords, card.relevancePhrases);
     const tagged = relevant.map((listing) => ({
       ...listing,
       parallel: listing.title ? matchParallel(listing.title, card.parallels) : null,

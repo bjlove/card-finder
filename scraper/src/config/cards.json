@@ -1,5 +1,5 @@
 {
-  "_comment": "Add or edit cards here. Each card gets its own search on eBay/Goldin/Fanatics and its own parallel list for tagging results. 'match' keywords are lowercase substrings that must ALL appear in a listing title for it to be tagged with that parallel. Order matters: the first parallel (top to bottom) whose keywords all match wins, so put the most specific parallels (Superfractor, Black Wave, Printing Plates, color+finish combos) above the generic ones (plain 'Refractor'). 'psa10Estimate' is just a reference range you supply for context in the UI — it is never scraped, so update it by hand as the market moves.",
+  "_comment": "Add or edit cards here. Each card gets its own search on eBay/Goldin/Fanatics and its own parallel list for tagging results. relevanceKeywords: every word must appear (anywhere) or the listing is dropped entirely. relevancePhrases: an OR-list of adjacent-word phrases — at least one must appear, or the listing is dropped; this is what actually separates real pack-pulled autographs from non-auto base cards and aftermarket-signed cards (both lack the card's own printed 'PROSPECT AUTO'/'ROOKIE AUTO' phrasing). 'match' words in a parallel must appear as an adjacent phrase, in order ('refractor' also accepts the 'Ref' abbreviation) — order the parallels list most-specific-first, since the first one whose phrase matches (and whose 'exclude' words are absent) wins. 'psa10Estimate' is just a reference range you supply for context in the UI — it is never scraped, so update it by hand as the market moves.",
   "cards": [
     {
       "id": "2022-bowman-draft-chrome-misiorowski",
@@ -13,7 +13,8 @@
         "goldin": "Misiorowski 2022 Bowman",
         "fanatics": "Jacob Misiorowski 2022 Bowman"
       },
-      "relevanceKeywords": ["2022", "bowman"],
+      "relevanceKeywords": ["2022", "bowman", "chrome"],
+      "relevancePhrases": [["prospect", "auto"], ["rookie", "auto"]],
       "parallels": [
         { "name": "Superfractor", "printRun": 1, "match": ["superfractor"], "psa10Estimate": null },
         { "name": "Black Wave Refractor", "printRun": 1, "match": ["black", "wave"], "psa10Estimate": null },
