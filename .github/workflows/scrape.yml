@@ -5,6 +5,9 @@ on:
     - cron: "0 * * * *" # top of every hour, UTC
   workflow_dispatch: {} # lets you trigger a run manually from the Actions tab
 
+permissions:
+  contents: read
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
