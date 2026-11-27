@@ -13,7 +13,7 @@ export default function App() {
       (snapshot) => {
         setCards(snapshot.docs.map((doc) => doc.data()));
       },
-      (err) => setError(err.message)
+      () => setError(true)
     );
     return unsubscribe;
   }, []);
@@ -21,18 +21,18 @@ export default function App() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-1 text-2xl font-bold text-gray-900">Card Finder</h1>
-      <p className="mb-8 text-sm text-gray-500">Live listings across eBay, Goldin, and Fanatics Collect. Refreshed hourly.</p>
+      <p className="mb-8 text-sm text-gray-500">Live listings across eBay, Goldin, and Fanatics Collect.</p>
 
       {error && (
         <div className="mb-6 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          Couldn&apos;t load data: {error}
+          Couldn&apos;t load listings.
         </div>
       )}
 
       {!error && cards === null && <p className="text-gray-500">Loading…</p>}
 
       {cards?.length === 0 && (
-        <p className="text-gray-500">No data yet — run the scraper once (see scraper/README) to populate Firestore.</p>
+        <p className="text-gray-500">No listings yet.</p>
       )}
 
       {cards?.map((card) => (

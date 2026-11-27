@@ -23,7 +23,7 @@ export default function SourceStatus({ sourceStatus = {} }) {
         return (
           <span key={key} className="flex items-center gap-1">
             <span className={`h-2 w-2 rounded-full ${ok ? "bg-green-500" : "bg-red-500"}`} />
-            {label}: {ok ? `updated ${timeAgo(status?.lastSuccess)}` : status ? `failing — ${status.error}` : "no data yet"}
+            {label}: {ok ? `updated ${timeAgo(status?.lastSuccess)}` : "unavailable"}
           </span>
         );
       })}
